@@ -1,0 +1,1639 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>轻墨写作</title>
+    
+    <!-- PWA 相关 meta 标签 -->
+    <meta name="theme-color" content="#4a90d9">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="轻墨写作">
+    <meta name="description" content="简洁优雅的小说写作工具，支持离线使用">
+    
+    <!-- 图标 -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%234a90d9'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='white'>✒</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%234a90d9'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='white'>✒</text></svg>">
+
+    <!-- 网络字体 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/source-han-serif-sc@1.0.0/source-han-serif-sc.min.css">
+    
+    <style>
+        /* 引入更多网络字体 */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600&family=Ma+Shan+Zheng&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        /* 日间模式 - 默认 */
+        body.day-mode {
+            --bg: #ffffff;
+            --sidebar-bg: #f7f7f7;
+            --toolbar-bg: #fafafa;
+            --text: #333333;
+            --text-light: #666666;
+            --border: #e5e5e5;
+            --hover: #eeeeee;
+            --accent: #4a90d9;
+            --editor-bg: #ffffff;
+            --card-bg: #ffffff;
+            --shelf-bg: #f0f2f5;
+        }
+
+        /* 夜间模式 */
+        body.night-mode {
+            --bg: #1e1e1e;
+            --sidebar-bg: #252526;
+            --toolbar-bg: #2d2d2d;
+            --text: #e0e0e0;
+            --text-light: #a0a0a0;
+            --border: #404040;
+            --hover: #3a3a3a;
+            --accent: #5ba0e0;
+            --editor-bg: #1e1e1e;
+            --card-bg: #2d2d2d;
+            --shelf-bg: #1a1a1a;
+        }
+
+        /* 护眼模式 */
+        body.eye-care-mode {
+            --bg: #f5f0e1;
+            --sidebar-bg: #ebe6d7;
+            --toolbar-bg: #f0ebdc;
+            --text: #5d4e37;
+            --text-light: #8b7355;
+            --border: #d4c9b0;
+            --hover: #e5dcc8;
+            --accent: #7d6b4a;
+            --editor-bg: #faf6ed;
+            --card-bg: #faf6ed;
+            --shelf-bg: #ebe6d7;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        /* PWA 安装提示 */
+        .pwa-install-prompt {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: none;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            z-index: 3000;
+            max-width: 90%;
+        }
+
+        .pwa-install-prompt.show {
+            display: flex;
+        }
+
+        .pwa-install-prompt .pwa-icon {
+            font-size: 32px;
+        }
+
+        .pwa-install-prompt .pwa-text {
+            flex: 1;
+        }
+
+        .pwa-install-prompt .pwa-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .pwa-install-prompt .pwa-desc {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .pwa-install-prompt .pwa-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .pwa-install-prompt .pwa-install {
+            background: var(--accent);
+            color: white;
+        }
+
+        .pwa-install-prompt .pwa-close {
+            background: var(--hover);
+            color: var(--text);
+        }
+
+        /* 离线提示 */
+        .offline-indicator {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ff9800;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: none;
+            z-index: 3000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .offline-indicator.show {
+            display: block;
+        }
+
+        /* ========== 书架页面 ========== */
+        .bookshelf-page {
+            height: 100vh;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            background: var(--shelf-bg);
+        }
+
+        .bookshelf-page.hidden {
+            display: none;
+        }
+
+        .shelf-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background: var(--toolbar-bg);
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .shelf-logo {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .shelf-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .shelf-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .shelf-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--text);
+        }
+
+        .book-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 16px;
+        }
+
+        .book-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        .book-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .book-cover {
+            width: 100%;
+            height: 120px;
+            background: linear-gradient(135deg, var(--accent), #6ab0f3);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .book-cover.cover-1 { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .book-cover.cover-2 { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .book-cover.cover-3 { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .book-cover.cover-4 { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+        .book-cover.cover-5 { background: linear-gradient(135deg, #fa709a, #fee140); }
+        .book-cover.cover-6 { background: linear-gradient(135deg, #a18cd1, #fbc2eb); }
+
+        .book-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .book-info {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .book-delete {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 26px;
+            height: 26px;
+            border: none;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .book-card:hover .book-delete,
+        .book-card:active .book-delete {
+            opacity: 1;
+        }
+
+        .book-delete:hover {
+            background: #e74c3c;
+        }
+
+        .add-book-card {
+            background: transparent;
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+        }
+
+        .add-book-card:hover {
+            border-color: var(--accent);
+            background: var(--hover);
+        }
+
+        .add-book-icon {
+            font-size: 40px;
+            color: var(--text-light);
+            margin-bottom: 10px;
+        }
+
+        .add-book-text {
+            font-size: 14px;
+            color: var(--text-light);
+        }
+
+        /* ========== 写作页面 ========== */
+        .editor-page {
+            height: 100vh;
+            height: 100dvh;
+            display: none;
+            flex-direction: column;
+            position: relative; /* 为绝对定位元素提供上下文 */
+        }
+
+        .editor-page.active {
+            display: flex;
+        }
+
+        .toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 15px;
+            background: var(--toolbar-bg);
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+            gap: 10px;
+            flex-wrap: wrap;
+            transition: all 0.3s ease; /* 添加过渡效果 */
+            overflow: hidden; /* 防止内容溢出 */
+            max-height: 120px; /* 设置一个足够大的最大高度 */
+        }
+
+        .toolbar.hidden {
+            max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+            opacity: 0;
+        }
+
+        /* 展开工具栏的触发器 */
+        .show-toolbar-trigger {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--toolbar-bg);
+            border: 1px solid var(--border);
+            border-top: none;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            padding: 2px 16px;
+            cursor: pointer;
+            z-index: 200;
+            font-size: 14px;
+            color: var(--text-light);
+            display: none; /* 默认隐藏 */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+        }
+
+        .show-toolbar-trigger:hover {
+            background: var(--hover);
+            color: var(--text);
+            padding-top: 6px;
+        }
+
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .back-btn {
+            padding: 8px 12px;
+            border: none;
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        .back-btn:hover {
+            background: var(--hover);
+        }
+
+        .current-book-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--accent);
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .toolbar-center {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .btn {
+            padding: 8px 12px;
+            border: none;
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 13px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            background: var(--hover);
+        }
+
+        .mode-group {
+            display: flex;
+            background: var(--hover);
+            border-radius: 8px;
+            padding: 2px;
+        }
+
+        .mode-btn {
+            padding: 6px 10px;
+            border: none;
+            background: transparent;
+            color: var(--text-light);
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 12px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .mode-btn.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .sidebar {
+            width: 240px;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            transition: all 0.3s;
+            z-index: 100;
+        }
+
+        .sidebar.hidden {
+            width: 0;
+            border: none;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 14px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .chapter-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .chapter-item {
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 4px;
+            font-size: 14px;
+            color: var(--text);
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chapter-item:hover {
+            background: var(--hover);
+        }
+
+        .chapter-item.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .chapter-item .delete-btn {
+            opacity: 0;
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .chapter-item:hover .delete-btn,
+        .chapter-item:active .delete-btn {
+            opacity: 0.7;
+        }
+
+        .add-chapter-btn {
+            margin: 10px;
+            padding: 12px;
+            border: 2px dashed var(--border);
+            background: transparent;
+            color: var(--text-light);
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .add-chapter-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .editor-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-width: 0;
+        }
+
+        .title-input {
+            width: 100%;
+            padding: 16px 20px;
+            border: none;
+            background: transparent;
+            color: var(--text);
+            font-size: 22px;
+            font-weight: 600;
+            outline: none;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .title-input::placeholder {
+            color: var(--text-light);
+        }
+
+        .editor-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .editor {
+            width: 100%;
+            min-height: 100%;
+            border: none;
+            background: transparent;
+            color: var(--text);
+            font-size: 16px;
+            line-height: 1.9;
+            outline: none;
+            resize: none;
+        }
+
+        .editor::placeholder {
+            color: var(--text-light);
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 15px;
+            background: var(--toolbar-bg);
+            border-top: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--text-light);
+            flex-shrink: 0;
+        }
+
+        .status-left, .status-right {
+            display: flex;
+            gap: 15px;
+        }
+
+        /* 专注模式 */
+        body.focus-mode .toolbar,
+        body.focus-mode .sidebar,
+        body.focus-mode .status-bar,
+        body.focus-mode .show-toolbar-trigger { /* 专注模式下隐藏所有按钮 */
+            display: none !important;
+        }
+
+        body.focus-mode .editor-container {
+            padding: 40px 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        body.focus-mode .title-input {
+            max-width: 760px;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .exit-focus-btn {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            padding: 10px 16px;
+            background: var(--toolbar-bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            display: none;
+            z-index: 1000;
+        }
+
+        body.focus-mode .exit-focus-btn {
+            display: block;
+        }
+
+        .dropdown {
+            position: relative;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 5px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            min-width: 140px;
+            display: none;
+            z-index: 200;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 12px 14px;
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--text);
+        }
+
+        .dropdown-item:hover {
+            background: var(--hover);
+        }
+
+        .font-select {
+            padding: 6px 10px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .setting-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .save-tip {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .save-dot {
+            width: 6px;
+            height: 6px;
+            background: #4caf50;
+            border-radius: 50%;
+        }
+
+        .save-dot.saving {
+            background: var(--accent);
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .divider {
+            width: 1px;
+            height: 20px;
+            background: var(--border);
+        }
+
+        /* 弹窗 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 24px;
+            width: 100%;
+            max-width: 360px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--text);
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 15px;
+            margin-bottom: 16px;
+            outline: none;
+        }
+
+        .modal-input:focus {
+            border-color: var(--accent);
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .modal-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .modal-btn.cancel {
+            background: var(--hover);
+            color: var(--text);
+        }
+
+        .modal-btn.confirm {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* 字体加载提示 */
+        .font-loading {
+            position: fixed;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: none;
+            z-index: 2500;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .font-loading.show {
+            display: block;
+        }
+
+        /* ========== 响应式 - 平板 ========== */
+        @media (max-width: 900px) {
+            .toolbar-center {
+                order: 3;
+                width: 100%;
+                justify-content: center;
+                margin-top: 8px;
+                padding-top: 8px;
+                border-top: 1px solid var(--border);
+            }
+
+            .sidebar {
+                width: 220px;
+            }
+        }
+
+        /* ========== 响应式 - 手机 ========== */
+        @media (max-width: 600px) {
+            .shelf-logo {
+                font-size: 18px;
+            }
+
+            .mode-btn {
+                padding: 5px 8px;
+                font-size: 11px;
+            }
+
+            .book-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .book-card {
+                padding: 12px;
+            }
+
+            .book-cover {
+                height: 100px;
+                font-size: 28px;
+            }
+
+            .book-delete {
+                opacity: 1;
+                width: 24px;
+                height: 24px;
+            }
+
+            .add-book-card {
+                min-height: 160px;
+            }
+
+            .back-btn span.text,
+            .btn span.text {
+                display: none;
+            }
+
+            .current-book-title {
+                max-width: 100px;
+            }
+
+            .font-select {
+                max-width: 80px;
+            }
+
+            .divider {
+                display: none;
+            }
+
+            .sidebar {
+                position: absolute;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                width: 260px;
+                transform: translateX(-100%);
+                box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .sidebar.hidden {
+                width: 260px;
+                transform: translateX(-100%);
+            }
+
+            .sidebar-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.3);
+                display: none;
+                z-index: 99;
+            }
+
+            .sidebar-overlay.show {
+                display: block;
+            }
+
+            .title-input {
+                padding: 14px 15px;
+                font-size: 18px;
+            }
+
+            .editor-container {
+                padding: 15px;
+            }
+
+            .editor {
+                font-size: 15px;
+            }
+
+            .pwa-install-prompt {
+                bottom: 10px;
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+
+            .pwa-install-prompt .pwa-buttons {
+                display: flex;
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .book-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body class="day-mode">
+
+    <!-- 离线提示 -->
+    <div class="offline-indicator" id="offlineIndicator">📴 离线模式</div>
+
+    <!-- 字体加载提示 -->
+    <div class="font-loading" id="fontLoading">⏳ 字体加载中...</div>
+
+    <!-- PWA 安装提示 -->
+    <div class="pwa-install-prompt" id="pwaPrompt">
+        <div class="pwa-icon">✒️</div>
+        <div class="pwa-text">
+            <div class="pwa-title">安装「轻墨写作」</div>
+            <div class="pwa-desc">添加到主屏幕，离线也能写作</div>
+        </div>
+        <div class="pwa-buttons">
+            <button class="pwa-btn pwa-install" id="pwaInstall">安装</button>
+            <button class="pwa-btn pwa-close" id="pwaClose">稍后</button>
+        </div>
+    </div>
+
+    <!-- ========== 书架页面 ========== -->
+    <div class="bookshelf-page" id="bookshelfPage">
+        <div class="shelf-header">
+            <span class="shelf-logo">✒️ 轻墨写作</span>
+            <div class="shelf-actions">
+                <div class="mode-group">
+                    <button class="mode-btn active" id="shelfDayMode">☀️</button>
+                    <button class="mode-btn" id="shelfNightMode">🌙</button>
+                    <button class="mode-btn" id="shelfEyeCareMode">🌿</button>
+                </div>
+            </div>
+        </div>
+        <div class="shelf-content">
+            <h2 class="shelf-title">📚 我的书架</h2>
+            <div class="book-grid" id="bookGrid"></div>
+        </div>
+    </div>
+
+    <!-- ========== 写作页面 ========== -->
+    <div class="editor-page" id="editorPage">
+        <!-- 展开工具栏的触发器 -->
+        <div class="show-toolbar-trigger" id="showToolbarBtn">🔽</div>
+
+        <div class="toolbar" id="mainToolbar">
+            <div class="toolbar-left">
+                <button class="back-btn" id="backToShelf">← <span class="text">返回</span></button>
+                <span class="current-book-title" id="currentBookTitle">我的小说</span>
+            </div>
+
+            <div class="toolbar-right">
+                <button class="btn" id="toggleSidebar">☰ <span class="text">目录</span></button>
+                <button class="btn" id="focusModeBtn">🎯 <span class="text">专注</span></button>
+                <div class="dropdown">
+                    <button class="btn" id="exportBtn">📤 <span class="text">导出</span></button>
+                    <div class="dropdown-menu" id="exportMenu">
+                        <div class="dropdown-item" id="exportTxt">导出当前章节</div>
+                        <div class="dropdown-item" id="exportAllTxt">导出全书</div>
+                    </div>
+                </div>
+                <!-- 隐藏工具栏的按钮 -->
+                <button class="btn" id="hideToolbarBtn" title="收起顶栏">🔼</button>
+            </div>
+
+            <div class="toolbar-center">
+                <div class="mode-group">
+                    <button class="mode-btn active" id="dayModeBtn">☀️</button>
+                    <button class="mode-btn" id="nightModeBtn">🌙</button>
+                    <button class="mode-btn" id="eyeCareModeBtn">🌿</button>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="setting-group">
+                    <select class="font-select" id="fontFamilySelect">
+                        <option value="system">默认字体</option>
+                        <option value="'Noto Serif SC', serif">思源宋体</option>
+                        <option value="'LXGW WenKai', serif">霞鹜文楷</option>
+                        <option value="'Ma Shan Zheng', cursive">马善政楷书</option>
+                    </select>
+                </div>
+
+                <div class="setting-group">
+                    <select class="font-select" id="fontSizeSelect">
+                        <option value="14">14px</option>
+                        <option value="15">15px</option>
+                        <option value="16" selected>16px</option>
+                        <option value="18">18px</option>
+                        <option value="20">20px</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="main">
+            <div class="sidebar-overlay" id="sidebarOverlay"></div>
+            <div class="sidebar" id="sidebar">
+                <div class="sidebar-header">📖 章节列表</div>
+                <div class="chapter-list" id="chapterList"></div>
+                <button class="add-chapter-btn" id="addChapterBtn">+ 添加新章节</button>
+            </div>
+
+            <div class="editor-area">
+                <input type="text" class="title-input" id="titleInput" placeholder="请输入章节标题...">
+                <div class="editor-container">
+                    <textarea class="editor" id="editor" placeholder="开始写作吧..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-left">
+                <span class="save-tip">
+                    <span class="save-dot" id="saveDot"></span>
+                    <span id="saveText">已保存</span>
+                </span>
+            </div>
+            <div class="status-right">
+                <span id="charCount">字符: 0</span>
+                <span id="wordCount">字数: 0</span>
+                <span id="timeDisplay"></span>
+            </div>
+        </div>
+    </div>
+
+    <button class="exit-focus-btn" id="exitFocusBtn">✕ 退出专注</button>
+
+    <!-- 新建小说弹窗 -->
+    <div class="modal-overlay" id="newBookModal">
+        <div class="modal">
+            <h3 class="modal-title">📝 新建小说</h3>
+            <input type="text" class="modal-input" id="newBookInput" placeholder="请输入小说名称...">
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" id="cancelNewBook">取消</button>
+                <button class="modal-btn confirm" id="confirmNewBook">创建</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== PWA 安装 ==========
+        let deferredPrompt = null;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            setTimeout(() => {
+                if (!localStorage.getItem('pwaPromptDismissed')) {
+                    document.getElementById('pwaPrompt').classList.add('show');
+                }
+            }, 3000);
+        });
+
+        document.getElementById('pwaInstall').onclick = async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                await deferredPrompt.userChoice;
+                deferredPrompt = null;
+            }
+            document.getElementById('pwaPrompt').classList.remove('show');
+        };
+
+        document.getElementById('pwaClose').onclick = () => {
+            document.getElementById('pwaPrompt').classList.remove('show');
+            localStorage.setItem('pwaPromptDismissed', 'true');
+        };
+
+        // ========== 离线状态检测 ==========
+        function updateOnlineStatus() {
+            const indicator = document.getElementById('offlineIndicator');
+            if (!navigator.onLine) {
+                indicator.classList.add('show');
+            } else {
+                indicator.classList.remove('show');
+            }
+        }
+
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        updateOnlineStatus();
+
+        // ========== 全局数据 ==========
+        let books = [];
+        let currentBookId = null;
+        let currentChapterIndex = 0;
+        let saveTimer = null;
+        let isMobile = window.innerWidth <= 600;
+
+        function loadBooks() {
+            const saved = localStorage.getItem('novelWriterBooks');
+            if (saved) {
+                books = JSON.parse(saved);
+            }
+        }
+
+        function saveBooks() {
+            localStorage.setItem('novelWriterBooks', JSON.stringify(books));
+        }
+
+        function getCurrentBook() {
+            return books.find(b => b.id === currentBookId);
+        }
+
+        function renderBookshelf() {
+            const grid = document.getElementById('bookGrid');
+            grid.innerHTML = '';
+
+            books.forEach((book, index) => {
+                const card = document.createElement('div');
+                card.className = 'book-card';
+                const coverClass = `cover-${(index % 6) + 1}`;
+                
+                let totalWords = 0;
+                book.chapters.forEach(ch => {
+                    const cleaned = (ch.content || '').replace(/[\s\r\n\u0000-\u00ff]/g, '');
+                    totalWords += cleaned.length;
+                });
+
+                card.innerHTML = `
+                    <button class="book-delete" data-id="${book.id}">×</button>
+                    <div class="book-cover ${coverClass}">📖</div>
+                    <div class="book-title">${book.name}</div>
+                    <div class="book-info">${book.chapters.length} 章 · ${totalWords} 字</div>
+                `;
+                
+                card.onclick = (e) => {
+                    if (!e.target.classList.contains('book-delete')) {
+                        openBook(book.id);
+                    }
+                };
+                
+                grid.appendChild(card);
+            });
+
+            const addCard = document.createElement('div');
+            addCard.className = 'add-book-card';
+            addCard.innerHTML = `
+                <div class="add-book-icon">+</div>
+                <div class="add-book-text">新建小说</div>
+            `;
+            addCard.onclick = () => {
+                document.getElementById('newBookModal').classList.add('show');
+                document.getElementById('newBookInput').value = '';
+                setTimeout(() => document.getElementById('newBookInput').focus(), 100);
+            };
+            grid.appendChild(addCard);
+
+            document.querySelectorAll('.book-delete').forEach(btn => {
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    deleteBook(btn.dataset.id);
+                };
+            });
+        }
+
+        function createBook(name) {
+            const book = {
+                id: Date.now().toString(),
+                name: name,
+                chapters: [{ title: '第一章', content: '' }],
+                currentChapterIndex: 0,
+                createdAt: new Date().toISOString()
+            };
+            books.push(book);
+            saveBooks();
+            renderBookshelf();
+        }
+
+        function deleteBook(id) {
+            const book = books.find(b => b.id === id);
+            if (!book) return;
+            if (!confirm(`确定删除《${book.name}》吗？\n此操作不可恢复！`)) return;
+            books = books.filter(b => b.id !== id);
+            saveBooks();
+            renderBookshelf();
+        }
+
+        function openBook(id) {
+            currentBookId = id;
+            const book = getCurrentBook();
+            currentChapterIndex = book.currentChapterIndex || 0;
+            
+            document.getElementById('bookshelfPage').classList.add('hidden');
+            document.getElementById('editorPage').classList.add('active');
+            document.getElementById('currentBookTitle').textContent = book.name;
+            
+            renderChapters();
+            loadChapter();
+            if (isMobile) hideSidebar();
+        }
+
+        function backToShelf() {
+            saveCurrentChapter();
+            saveBooks();
+            currentBookId = null;
+            document.getElementById('editorPage').classList.remove('active');
+            document.getElementById('bookshelfPage').classList.remove('hidden');
+            document.body.classList.remove('focus-mode');
+            renderBookshelf();
+        }
+
+        function showSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.remove('hidden');
+            sidebar.classList.add('show');
+            overlay.classList.add('show');
+        }
+
+        function hideSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.remove('show');
+            sidebar.classList.add('hidden');
+            overlay.classList.remove('show');
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            if (isMobile) {
+                if (sidebar.classList.contains('show')) {
+                    hideSidebar();
+                } else {
+                    showSidebar();
+                }
+            } else {
+                sidebar.classList.toggle('hidden');
+            }
+        }
+
+        function renderChapters() {
+            const book = getCurrentBook();
+            const list = document.getElementById('chapterList');
+            list.innerHTML = '';
+            
+            book.chapters.forEach((chapter, index) => {
+                const item = document.createElement('div');
+                item.className = 'chapter-item' + (index === currentChapterIndex ? ' active' : '');
+                item.innerHTML = `
+                    <span>${chapter.title || '未命名'}</span>
+                    <button class="delete-btn" data-index="${index}">×</button>
+                `;
+                item.onclick = (e) => {
+                    if (!e.target.classList.contains('delete-btn')) {
+                        selectChapter(index);
+                    }
+                };
+                list.appendChild(item);
+            });
+
+            document.querySelectorAll('.chapter-item .delete-btn').forEach(btn => {
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    deleteChapter(parseInt(btn.dataset.index));
+                };
+            });
+        }
+
+        function selectChapter(index) {
+            saveCurrentChapter();
+            currentChapterIndex = index;
+            const book = getCurrentBook();
+            book.currentChapterIndex = index;
+            loadChapter();
+            renderChapters();
+            autoSave();
+            if (isMobile) hideSidebar();
+        }
+
+        function loadChapter() {
+            const book = getCurrentBook();
+            const chapter = book.chapters[currentChapterIndex];
+            document.getElementById('titleInput').value = chapter.title || '';
+            document.getElementById('editor').value = chapter.content || '';
+            updateWordCount();
+        }
+
+        function saveCurrentChapter() {
+            const book = getCurrentBook();
+            if (!book) return;
+            book.chapters[currentChapterIndex].title = document.getElementById('titleInput').value;
+            book.chapters[currentChapterIndex].content = document.getElementById('editor').value;
+        }
+
+        function addChapter() {
+            saveCurrentChapter();
+            const book = getCurrentBook();
+            book.chapters.push({ title: `第${book.chapters.length + 1}章`, content: '' });
+            currentChapterIndex = book.chapters.length - 1;
+            book.currentChapterIndex = currentChapterIndex;
+            loadChapter();
+            renderChapters();
+            saveBooks();
+            document.getElementById('titleInput').focus();
+            if (isMobile) hideSidebar();
+        }
+
+        function deleteChapter(index) {
+            const book = getCurrentBook();
+            if (book.chapters.length <= 1) {
+                alert('至少保留一个章节！');
+                return;
+            }
+            if (!confirm(`确定删除「${book.chapters[index].title}」吗？`)) return;
+            book.chapters.splice(index, 1);
+            if (currentChapterIndex >= book.chapters.length) {
+                currentChapterIndex = book.chapters.length - 1;
+            } else if (currentChapterIndex > index) {
+                currentChapterIndex--;
+            }
+            book.currentChapterIndex = currentChapterIndex;
+            loadChapter();
+            renderChapters();
+            saveBooks();
+        }
+
+        function updateWordCount() {
+            const content = document.getElementById('editor').value;
+            const charCount = content.length;
+            const cleaned = content.replace(/[\s\r\n\u0000-\u00ff\u2000-\u206F\u3000-\u303F\uFF00-\uFFEF]/g, '');
+            document.getElementById('charCount').textContent = `字符: ${charCount}`;
+            document.getElementById('wordCount').textContent = `字数: ${cleaned.length}`;
+        }
+
+        function autoSave() {
+            clearTimeout(saveTimer);
+            saveTimer = setTimeout(() => {
+                document.getElementById('saveDot').classList.add('saving');
+                document.getElementById('saveText').textContent = '保存中...';
+                saveCurrentChapter();
+                saveBooks();
+                setTimeout(() => {
+                    document.getElementById('saveDot').classList.remove('saving');
+                    document.getElementById('saveText').textContent = '已保存';
+                }, 500);
+            }, 1000);
+        }
+
+        function setMode(mode) {
+            const currentFocusMode = document.body.classList.contains('focus-mode');
+            document.body.className = mode;
+            if (currentFocusMode) document.body.classList.add('focus-mode');
+            
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            
+            if (mode === 'day-mode') {
+                document.getElementById('dayModeBtn').classList.add('active');
+                document.getElementById('shelfDayMode').classList.add('active');
+            } else if (mode === 'night-mode') {
+                document.getElementById('nightModeBtn').classList.add('active');
+                document.getElementById('shelfNightMode').classList.add('active');
+            } else if (mode === 'eye-care-mode') {
+                document.getElementById('eyeCareModeBtn').classList.add('active');
+                document.getElementById('shelfEyeCareMode').classList.add('active');
+            }
+            localStorage.setItem('themeMode', mode);
+        }
+
+        function downloadFile(filename, content) {
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function exportCurrentTxt() {
+            const book = getCurrentBook();
+            const chapter = book.chapters[currentChapterIndex];
+            downloadFile(`${chapter.title || '未命名'}.txt`, `${chapter.title}\n\n${chapter.content}`);
+        }
+
+        function exportAllTxt() {
+            const book = getCurrentBook();
+            let content = `《${book.name}》\n\n${'='.repeat(40)}\n\n`;
+            book.chapters.forEach(ch => {
+                content += `${ch.title}\n\n${ch.content}\n\n${'-'.repeat(40)}\n\n`;
+            });
+            downloadFile(`${book.name}.txt`, content);
+        }
+
+        function setFontFamily(fontFamily) {
+            const editor = document.getElementById('editor');
+            const titleInput = document.getElementById('titleInput');
+            const fontLoading = document.getElementById('fontLoading');
+            
+            if (fontFamily === 'system') {
+                const systemFont = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
+                editor.style.fontFamily = systemFont;
+                titleInput.style.fontFamily = systemFont;
+            } else {
+                // 显示加载提示
+                fontLoading.classList.add('show');
+                
+                editor.style.fontFamily = fontFamily;
+                titleInput.style.fontFamily = fontFamily;
+                
+                // 检测字体是否加载完成
+                if (document.fonts && document.fonts.ready) {
+                    document.fonts.ready.then(() => {
+                        fontLoading.classList.remove('show');
+                    });
+                } else {
+                    setTimeout(() => fontLoading.classList.remove('show'), 2000);
+                }
+            }
+            localStorage.setItem('fontFamily', fontFamily);
+        }
+
+        function setFontSize(size) {
+            document.getElementById('editor').style.fontSize = size + 'px';
+            localStorage.setItem('fontSize', size);
+        }
+
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('timeDisplay').textContent = 
+                `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        }
+
+        function init() {
+            loadBooks();
+            renderBookshelf();
+
+            const savedMode = localStorage.getItem('themeMode') || 'day-mode';
+            setMode(savedMode);
+
+            const savedFontFamily = localStorage.getItem('fontFamily');
+            if (savedFontFamily) {
+                document.getElementById('fontFamilySelect').value = savedFontFamily;
+                setFontFamily(savedFontFamily);
+            }
+
+            const savedFontSize = localStorage.getItem('fontSize');
+            if (savedFontSize) {
+                document.getElementById('fontSizeSelect').value = savedFontSize;
+                setFontSize(savedFontSize);
+            }
+
+            updateTime();
+            setInterval(updateTime, 30000);
+
+            window.addEventListener('resize', () => {
+                isMobile = window.innerWidth <= 600;
+                if (!isMobile) {
+                    document.getElementById('sidebarOverlay').classList.remove('show');
+                    document.getElementById('sidebar').classList.remove('show');
+                }
+            });
+
+            document.getElementById('backToShelf').onclick = backToShelf;
+            document.getElementById('editor').oninput = () => { updateWordCount(); autoSave(); };
+            document.getElementById('titleInput').oninput = () => { renderChapters(); autoSave(); };
+            document.getElementById('toggleSidebar').onclick = toggleSidebar;
+            document.getElementById('sidebarOverlay').onclick = hideSidebar;
+            document.getElementById('addChapterBtn').onclick = addChapter;
+
+            // ========== 顶栏隐藏/显示逻辑 ==========
+            const mainToolbar = document.getElementById('mainToolbar');
+            const showToolbarBtn = document.getElementById('showToolbarBtn');
+            const hideToolbarBtn = document.getElementById('hideToolbarBtn');
+
+            hideToolbarBtn.onclick = () => {
+                mainToolbar.classList.add('hidden');
+                showToolbarBtn.style.display = 'block';
+            };
+
+            showToolbarBtn.onclick = () => {
+                mainToolbar.classList.remove('hidden');
+                showToolbarBtn.style.display = 'none';
+            };
+            // 鼠标移入自动显示
+            showToolbarBtn.onmouseenter = () => {
+                mainToolbar.classList.remove('hidden');
+                showToolbarBtn.style.display = 'none';
+            };
+
+            document.getElementById('shelfDayMode').onclick = () => setMode('day-mode');
+            document.getElementById('shelfNightMode').onclick = () => setMode('night-mode');
+            document.getElementById('shelfEyeCareMode').onclick = () => setMode('eye-care-mode');
+            document.getElementById('dayModeBtn').onclick = () => setMode('day-mode');
+            document.getElementById('nightModeBtn').onclick = () => setMode('night-mode');
+            document.getElementById('eyeCareModeBtn').onclick = () => setMode('eye-care-mode');
+
+            document.getElementById('fontFamilySelect').onchange = function() { setFontFamily(this.value); };
+            document.getElementById('fontSizeSelect').onchange = function() { setFontSize(this.value); };
+
+            document.getElementById('focusModeBtn').onclick = () => {
+                document.body.classList.add('focus-mode');
+                if (isMobile) hideSidebar();
+            };
+            document.getElementById('exitFocusBtn').onclick = () => document.body.classList.remove('focus-mode');
+
+            document.onkeydown = (e) => {
+                if (e.key === 'Escape') {
+                    document.body.classList.remove('focus-mode');
+                    if (isMobile) hideSidebar();
+                }
+                if (e.ctrlKey && e.key === 's') {
+                    e.preventDefault();
+                    saveCurrentChapter();
+                    saveBooks();
+                }
+            };
+
+            document.getElementById('exportBtn').onclick = (e) => {
+                e.stopPropagation();
+                document.getElementById('exportMenu').classList.toggle('show');
+            };
+            document.onclick = () => document.getElementById('exportMenu').classList.remove('show');
+            document.getElementById('exportTxt').onclick = (e) => {
+                e.stopPropagation();
+                exportCurrentTxt();
+                document.getElementById('exportMenu').classList.remove('show');
+            };
+            document.getElementById('exportAllTxt').onclick = (e) => {
+                e.stopPropagation();
+                exportAllTxt();
+                document.getElementById('exportMenu').classList.remove('show');
+            };
+
+            document.getElementById('cancelNewBook').onclick = () => document.getElementById('newBookModal').classList.remove('show');
+            document.getElementById('confirmNewBook').onclick = () => {
+                const name = document.getElementById('newBookInput').value.trim();
+                if (!name) { alert('请输入小说名称！'); return; }
+                createBook(name);
+                document.getElementById('newBookModal').classList.remove('show');
+            };
+            document.getElementById('newBookInput').onkeydown = (e) => {
+                if (e.key === 'Enter') document.getElementById('confirmNewBook').click();
+            };
+            document.getElementById('newBookModal').onclick = function(e) {
+                if (e.target === this) this.classList.remove('show');
+            };
+        }
+
+        init();
+    </script>
+</body>
+</html>
